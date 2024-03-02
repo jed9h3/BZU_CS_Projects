@@ -15,8 +15,25 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
+import org.w3c.dom.Element;
 
 public class Driver extends Application {
+    public static TextField idTf = new TextField();
+    public static TextField nameTf = new TextField();
+    public static TextField dateTf = new TextField();
+    public static TextField avgTf = new TextField();
+    public static boolean found = false;
+
     public static void main(String[] args) {
         launch(args);
     }
@@ -31,19 +48,19 @@ public class Driver extends Application {
         primaryStage.setScene(scene1);
         VBox titleContainer = new VBox(50);
         Label titleL = new Label("Search for a student using their ID");
-        TextField idTf = new TextField();
+
         titleContainer.getChildren().addAll(titleL, idTf);
         VBox nameContainer = new VBox(5);
         Label nameL = new Label("Name");
-        TextField nameTf = new TextField();
+
         nameContainer.getChildren().addAll(nameL, nameTf);
         VBox dateContainer = new VBox(5);
         Label dateL = new Label("Date of birth");
-        TextField dateTf = new TextField();
+
         dateContainer.getChildren().addAll(dateL, dateTf);
         VBox avgContainer = new VBox(5);
         Label avgL = new Label("Current semester average");
-        TextField avgTf = new TextField();
+
         avgContainer.getChildren().addAll(avgL, avgTf);
         bigContainer.getChildren().addAll(titleContainer, nameContainer, dateContainer, avgContainer);
         // ============================================================================================
@@ -93,6 +110,8 @@ public class Driver extends Application {
             try {
                 if (!idTf.getText().isEmpty())
                     Integer.parseInt(idTf.getText());
+                // saxParse();
+                domParse();
             } catch (Exception e) {
                 idTf.setStyle(
                         "-fx-text-fill: white; -fx-background-color: #202020; -fx-border-radius: 3; -fx-border-color:  rgba(244, 00, 00, 0.5); -fx-border-width: 1;");
@@ -102,5 +121,92 @@ public class Driver extends Application {
                 timeline.play();
             }
         });
+    }
+
+    public static void saxParse() {
+        try {
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            SAXParser saxParser = factory.newSAXParser();
+
+            DefaultHandler handler = new DefaultHandler() {
+                String tempEl = "";
+                String tempElo = "";
+                String tempval = "";
+
+                public void startElement(String uri, String localName, String qName, Attributes attributes)
+                        throws SAXException {
+                    if (qName.compareTo("id") == 0) {
+                        tempEl = qName;
+                    } else {
+                        tempElo = qName;
+                    }
+                }
+
+                public void characters(char ch[], int start, int length) throws SAXException {
+                    String temp = new String(ch, start, length);
+                    if (tempEl.compareTo("id") == 0) {
+                        tempval = temp;
+                        tempEl = "";
+                    } else {
+                        if (!temp.isBlank() && idTf.getText().compareTo(tempval) == 0) {
+                            found = true;
+                            if (tempElo.compareTo("name") == 0) {
+                                nameTf.setText(temp);
+                            } else if (tempElo.compareTo("dob") == 0) {
+                                dateTf.setText(temp);
+                            } else if (tempElo.compareTo("avg") == 0) {
+                                avgTf.setText(temp);
+                            }
+                        }
+                    }
+                }
+            };
+
+            saxParser.parse("webServicesTask1/students.xml", handler);
+            if (!found) {
+                nameTf.setText("");
+                dateTf.setText("");
+                avgTf.setText("");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        found = false;
+    }
+
+    public static void domParse() {
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse("webServicesTask1/students.xml");
+
+            NodeList nodeList = doc.getElementsByTagName("student");
+
+            for (int i = 0; i < nodeList.getLength(); i++) {
+                Node node = nodeList.item(i);
+
+                if (node.getNodeType() == Node.ELEMENT_NODE) {
+                    Element element = (Element) node;
+                    String tempId = "";
+                    tempId = element.getElementsByTagName("id").item(0).getTextContent();
+                    if (tempId.compareTo(idTf.getText()) == 0) {
+                        found = true;
+                        nameTf.setText(element.getElementsByTagName("name").item(0).getTextContent());
+                        dateTf.setText(element.getElementsByTagName("dob").item(0).getTextContent());
+                        avgTf.setText(element.getElementsByTagName("avg").item(0).getTextContent());
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (!found) {
+            nameTf.setText("");
+            dateTf.setText("");
+            avgTf.setText("");
+        }
+        found = false;
     }
 }

@@ -1,0 +1,22 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<students xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="students.xsd">
+    <student>
+        <id>1202940</id>
+        <name>Majed Alghoul</name>
+        <dob>2002-03-02</dob>
+        <avg>78</avg>
+    </student>
+    <student>
+        <id>1202941</id>
+        <name>Ahmad Kalil</name>
+        <dob>2002-08-08</dob>
+        <avg>75</avg>
+    </student>
+    <student>
+        <id>1202942</id>
+        <name>Tariq Farid</name>
+        <dob>2002-05-03</dob>
+        <avg>90</avg>
+    </student>
+</students>
